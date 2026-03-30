@@ -20,6 +20,20 @@ public class Difficulty extends javax.swing.JFrame {
         initComponents();
     }
 
+    
+    
+    private void setDifficulty(String difficulty) {
+    GameSettings.difficulty = difficulty;
+    javax.swing.JOptionPane.showMessageDialog(this, "Difficulty set to " + difficulty);
+}
+    
+    
+    
+    
+    
+    
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -42,14 +56,29 @@ public class Difficulty extends javax.swing.JFrame {
 
         jButton1.setFont(new java.awt.Font("Malayalam MN", 0, 13)); // NOI18N
         jButton1.setText("Easy");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         jLayeredPane1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 70, 80, -1));
 
         jButton2.setFont(new java.awt.Font("Malayalam MN", 0, 13)); // NOI18N
         jButton2.setText("Medium");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
         jLayeredPane1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 120, -1, -1));
 
         jButton3.setFont(new java.awt.Font("Malayalam MN", 0, 13)); // NOI18N
         jButton3.setText("Hard");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
         jLayeredPane1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 170, 80, -1));
 
         jButton4.setFont(new java.awt.Font("Malayalam MN", 0, 13)); // NOI18N
@@ -83,6 +112,21 @@ public class Difficulty extends javax.swing.JFrame {
         s.setVisible(true);
         dispose();
     }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        setDifficulty("Easy");
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        setDifficulty("Medium");
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        setDifficulty("Hard");
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
