@@ -14,6 +14,7 @@ public class MainGame extends javax.swing.JFrame {
     
     
     // ---------------- GAME VARIABLES ----------------
+private boolean presentationMode = true;
 private int playerHealth = 25;
 private int aiHealth = 25;
 
@@ -26,8 +27,8 @@ private boolean playerBoosterArmed = false;
 private boolean playerBoosterUsedThisRound = false;
 
 // Deck Counters
-private int playerDeckCount = 20;
-private int aiDeckCount = 20;
+private int sharedDeckCount = 0;
+private java.util.ArrayList<Card> sharedDeck = new java.util.ArrayList<>();
 
 private Card playerCard1;
 private Card playerCard2;
@@ -124,19 +125,23 @@ private int warAISlot = -1;
     jProgressBar1.setString("Player Health: " + playerHealth);
     jProgressBar2.setString("AI Health: " + aiHealth);
     
-    setStartingPlayerHand();
-
     
-    playerDeckCount = 20;
-    aiDeckCount = 20;
+    buildDeck(sharedDeck);
+    setStartingPlayerHand();
+    setStartingAIHand();
+
+    sharedDeckCount = sharedDeck.size();
+    
+    
+    
     
     currentRoundLog = "";
     
     jButton9.setIcon(null);
     jButton10.setIcon(null);
     
-    jButton9.setText("" + playerDeckCount);
-    jButton10.setText("" + aiDeckCount);
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
     
     jButton11.setIcon(null);
     jButton11.setText("PLAY");
@@ -147,7 +152,6 @@ private int warAISlot = -1;
     jButton13.setVisible(false);
     jButton14.setVisible(false);
     
-    setStartingAIHand();
     
     playerBonusCard = null;
     aiBonusCard = null;
@@ -286,6 +290,51 @@ private void updateTitleBar() {
     
     
     
+private void buildDeck(java.util.ArrayList<Card> deck) {
+    deck.clear();
+
+    String[] suits = {"Clubs", "Diamonds", "Hearts", "Spades"};
+
+    for (String suit : suits) {
+        for (int value = 2; value <= 14; value++) {
+            String valueName = "";
+
+            if (value >= 2 && value <= 10) {
+                valueName = "" + value;
+            } else if (value == 11) {
+                valueName = "Jack";
+            } else if (value == 12) {
+                valueName = "Queen";
+            } else if (value == 13) {
+                valueName = "King";
+            } else if (value == 14) {
+                valueName = "Ace";
+            }
+
+            String imagePath = "/images/" + valueName + suit + ".png";
+            deck.add(new Card(suit, value, imagePath));
+        }
+    }
+
+    java.util.Collections.shuffle(deck);
+}
+    
+    
+private Card drawSharedDeckCard() {
+    if (sharedDeck.isEmpty()) {
+        return null;
+    }
+    return sharedDeck.remove(0);
+}
+
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -359,8 +408,19 @@ private void updateTitleBar() {
 }
 
 private void givePlayerBonusCard() {
-    playerBonusCard = createRandomCard();
+    Card newBonus = drawSharedDeckCard();
+
+    if (newBonus == null) {
+        addRoundLog("No more cards left in the deck for a player bonus card.");
+        return;
+    }
+
+    playerBonusCard = newBonus;
     playerHasBonusCard = true;
+
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 
     jButton13.setIcon(new javax.swing.ImageIcon(getClass().getResource(playerBonusCard.getImagePath())));
     jButton13.setText("");
@@ -369,8 +429,19 @@ private void givePlayerBonusCard() {
 }
 
 private void giveAIBonusCard() {
-    aiBonusCard = createRandomCard();
+    Card newBonus = drawSharedDeckCard();
+
+    if (newBonus == null) {
+        addRoundLog("No more cards left in the deck for an AI bonus card.");
+        return;
+    }
+
+    aiBonusCard = newBonus;
     aiHasBonusCard = true;
+
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 
     jButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/b1fv.png")));
     jButton14.setText("");
@@ -381,32 +452,7 @@ private void giveAIBonusCard() {
     
     
     
-    
-    
-    
-    
-    private void setStartingAIHand() {
-    aiCard1 = new Card("Diamonds", 6, "/images/6Diamonds.png");
-    aiCard2 = new Card("Hearts", 9, "/images/9Hearts.png");
-    aiCard3 = new Card("Spades", 4, "/images/4Spades.png");
-    aiCard4 = new Card("Clubs", 12, "/images/QueenClubs.png");
 
-    jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/b1fv.png")));
-    jButton5.setText("");
-    jButton5.setEnabled(true);
-
-    jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/b1fv.png")));
-    jButton6.setText("");
-    jButton6.setEnabled(true);
-
-    jButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/b1fv.png")));
-    jButton7.setText("");
-    jButton7.setEnabled(true);
-
-    jButton8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/b1fv.png")));
-    jButton8.setText("");
-    jButton8.setEnabled(true);
-}
     
     
     
@@ -489,32 +535,33 @@ private Card getAICardBySlot(int slot) {
     return null;
 }
     
-    
-    
-    
-    
-    
+
+
     private void setStartingPlayerHand() {
-    playerCard1 = new Card("Clubs", 2, "/images/2Clubs.png");
-    playerCard2 = new Card("Diamonds", 7, "/images/7Diamonds.png");
-    playerCard3 = new Card("Hearts", 11, "/images/JackHearts.png");
-    playerCard4 = new Card("Spades", 8, "/images/8Spades.png");
+    playerCard1 = drawSharedDeckCard();
+    playerCard2 = drawSharedDeckCard();
+    playerCard3 = drawSharedDeckCard();
+    playerCard4 = drawSharedDeckCard();
 
-    jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource(playerCard1.getImagePath())));
-    jButton1.setText("");
-    jButton1.setEnabled(true);
+    updatePlayerButtonIcon(1);
+    updatePlayerButtonIcon(2);
+    updatePlayerButtonIcon(3);
+    updatePlayerButtonIcon(4);
+}
+    
+    
+    
+    
+private void setStartingAIHand() {
+    aiCard1 = drawSharedDeckCard();
+    aiCard2 = drawSharedDeckCard();
+    aiCard3 = drawSharedDeckCard();
+    aiCard4 = drawSharedDeckCard();
 
-    jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource(playerCard2.getImagePath())));
-    jButton2.setText("");
-    jButton2.setEnabled(true);
-
-    jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource(playerCard3.getImagePath())));
-    jButton3.setText("");
-    jButton3.setEnabled(true);
-
-    jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource(playerCard4.getImagePath())));
-    jButton4.setText("");
-    jButton4.setEnabled(true);
+    updateAIButtonBack(1);
+    updateAIButtonBack(2);
+    updateAIButtonBack(3);
+    updateAIButtonBack(4);
 }
     
     
@@ -630,20 +677,17 @@ private void startWar(Card playerCard, Card aiCard, int aiSlot) {
     addRoundLog("War started.");
     addRoundLog("Both players place 3 cards face down.");
 
-    if (playerDeckCount >= 3) {
-        playerDeckCount = playerDeckCount - 3;
-    } else {
-        playerDeckCount = 0;
+if (sharedDeck.size() >= 6) {
+    for (int i = 0; i < 6; i++) {
+        drawSharedDeckCard();
     }
+} else {
+    sharedDeck.clear();
+}
 
-    if (aiDeckCount >= 3) {
-        aiDeckCount = aiDeckCount - 3;
-    } else {
-        aiDeckCount = 0;
-    }
-
-    jButton9.setText("" + playerDeckCount);
-    jButton10.setText("" + aiDeckCount);
+sharedDeckCount = sharedDeck.size();
+jButton9.setText("" + sharedDeckCount);
+jButton10.setText("" + sharedDeckCount);
 
     showWarPile();
     showRoundLog();
@@ -660,7 +704,7 @@ private void resolveWarRound() {
     playerBoosterUsedThisRound = false;
     addRoundLog("War button pressed.");
 
-    if (playerDeckCount <= 0 || aiDeckCount <= 0) {
+    if (sharedDeck.size() < 2) {
     addRoundLog("A player ran out of cards during war.");
 
     hideWarPile();
@@ -677,14 +721,12 @@ private void resolveWarRound() {
     return;
 }
 
-    warPlayerFinalCard = createRandomCard();
-    warAIFinalCard = createRandomCard();
+warPlayerFinalCard = drawSharedDeckCard();
+warAIFinalCard = drawSharedDeckCard();
 
-    playerDeckCount = playerDeckCount - 1;
-    aiDeckCount = aiDeckCount - 1;
-
-    jButton9.setText("" + playerDeckCount);
-    jButton10.setText("" + aiDeckCount);
+sharedDeckCount = sharedDeck.size();
+jButton9.setText("" + sharedDeckCount);
+jButton10.setText("" + sharedDeckCount);
 
     jButton11.setIcon(new javax.swing.ImageIcon(getClass().getResource(warPlayerFinalCard.getImagePath())));
     jButton11.setText("");
@@ -819,8 +861,8 @@ private void aiTurn() {
     } else if (aiChoice == 2) {
         healAI(aiValue);
     } else if (aiChoice == 3) {
-        aiDeckCount = aiDeckCount + 1;
-        jButton10.setText("" + aiDeckCount);
+        //sharedDeckCount = sharedDeckCount + 1;
+        jButton10.setText("" + sharedDeckCount);
     } else if (aiChoice == 4) {
         // AI club booster placeholder for later
     }
@@ -1035,7 +1077,7 @@ private void updateAIButtonBack(int slot) {
     }
 }
 
-private void sendRandomAICardBackToDeck() {
+/* private void sendRandomAICardBackToDeck() {
     int slot = getRandomAISlot();
     Card newCard = createRandomCard();
 
@@ -1049,8 +1091,8 @@ private void sendRandomAICardBackToDeck() {
         aiCard4 = newCard;
     }
 
-    aiDeckCount++;
-    jButton10.setText("" + aiDeckCount);
+    sharedDeckCount++;
+    jButton10.setText("" + sharedDeckCount);
     updateAIButtonBack(slot);
 }
 
@@ -1059,10 +1101,10 @@ private void sendRandomPlayerCardBackToDeck() {
     Card newCard = createRandomCard();
 
     setPlayerCardBySlot(slot, newCard);
-    playerDeckCount++;
-    jButton9.setText("" + playerDeckCount);
+    sharedDeckCount++;
+    jButton9.setText("" + sharedDeckCount);
     updatePlayerButtonIcon(slot);
-}
+} */
 
 private void revealRandomAICard() {
     int slot = getRandomAISlot();
@@ -1095,13 +1137,13 @@ private void revealRandomPlayerCard() {
 }
 
 private void drawExtraPlayerCard() {
-    playerDeckCount++;
-    jButton9.setText("" + playerDeckCount);
+    sharedDeckCount++;
+    jButton9.setText("" + sharedDeckCount);
 }
 
 private void drawExtraAICard() {
-    aiDeckCount++;
-    jButton10.setText("" + aiDeckCount);
+    sharedDeckCount++;
+    jButton10.setText("" + sharedDeckCount);
 }
 
 
@@ -1203,19 +1245,17 @@ for (int i = 0; i < aiStealAmount; i++) {
     if (playerWon) {
         playerBooster = effectValue;
         playerHasBooster = true;
+        playerBoosterArmed = false;
         playerBoosterTurnsLeft = 3;
-        armPlayerBooster();
         playerBoosterUsedThisRound = false;
         addRoundLog("You gained a booster of " + effectValue + " for 3 turns.");
     } else {
         aiBooster = effectValue;
         aiHasBooster = true;
         aiBoosterTurnsLeft = 3;
-        armPlayerBooster();
-        playerBoosterUsedThisRound = false;
         addRoundLog("AI gained a booster of " + effectValue + " for 3 turns.");
-      }
     }
+}
 }
 
 
@@ -1242,7 +1282,7 @@ private void finishPlayerBoosterUse() {
 
 
 private void updateBoosterTimers() {
-    if (playerHasBooster && !playerBoosterUsedThisRound) {
+    if (playerHasBooster && !playerBoosterArmed) {
         playerBoosterTurnsLeft--;
 
         if (playerBoosterTurnsLeft <= 0) {
@@ -1419,8 +1459,35 @@ private void stealChosenAICardToPlayer() {
     setPlayerCardBySlot(playerSlot, stolenCard);
     updatePlayerButtonIcon(playerSlot);
 
-    setAICardBySlot(aiSlot, createRandomCard());
-    updateAIButtonBack(aiSlot);
+    Card replacementCard = drawSharedDeckCard();
+    if (replacementCard == null) {
+        setAICardBySlot(aiSlot, null);
+        if (aiSlot == 1) {
+            jButton5.setIcon(null);
+            jButton5.setText("EMPTY");
+            jButton5.setEnabled(false);
+        } else if (aiSlot == 2) {
+            jButton6.setIcon(null);
+            jButton6.setText("EMPTY");
+            jButton6.setEnabled(false);
+        } else if (aiSlot == 3) {
+            jButton7.setIcon(null);
+            jButton7.setText("EMPTY");
+            jButton7.setEnabled(false);
+        } else if (aiSlot == 4) {
+            jButton8.setIcon(null);
+            jButton8.setText("EMPTY");
+            jButton8.setEnabled(false);
+        }
+        addRoundLog("No replacement card was available for AI slot " + aiSlot + ".");
+    } else {
+        setAICardBySlot(aiSlot, replacementCard);
+        updateAIButtonBack(aiSlot);
+    }
+
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 
     addRoundLog("You stole AI card " + aiSlot + " (" + cardToText(stolenCard)
             + ") and placed it into your slot " + playerSlot + ".");
@@ -1467,8 +1534,35 @@ private void stealChosenPlayerCardToAI() {
     setAICardBySlot(aiSlot, stolenCard);
     updateAIButtonBack(aiSlot);
 
-    setPlayerCardBySlot(playerSlot, createRandomCard());
-    updatePlayerButtonIcon(playerSlot);
+    Card replacementCard = drawSharedDeckCard();
+    if (replacementCard == null) {
+        setPlayerCardBySlot(playerSlot, null);
+        if (playerSlot == 1) {
+            jButton1.setIcon(null);
+            jButton1.setText("EMPTY");
+            jButton1.setEnabled(false);
+        } else if (playerSlot == 2) {
+            jButton2.setIcon(null);
+            jButton2.setText("EMPTY");
+            jButton2.setEnabled(false);
+        } else if (playerSlot == 3) {
+            jButton3.setIcon(null);
+            jButton3.setText("EMPTY");
+            jButton3.setEnabled(false);
+        } else if (playerSlot == 4) {
+            jButton4.setIcon(null);
+            jButton4.setText("EMPTY");
+            jButton4.setEnabled(false);
+        }
+        addRoundLog("No replacement card was available for player slot " + playerSlot + ".");
+    } else {
+        setPlayerCardBySlot(playerSlot, replacementCard);
+        updatePlayerButtonIcon(playerSlot);
+    }
+
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 
     addRoundLog("AI stole your card from slot " + playerSlot + ".");
 }
@@ -1498,8 +1592,15 @@ private void addRoundLog(String text) {
 
 
 private void showRoundLog() {
+    if (presentationMode) {
+        System.out.println(currentRoundLog);
+        currentRoundLog = "";
+        return;
+    }
+
     if (!currentRoundLog.isEmpty()) {
         javax.swing.JOptionPane.showMessageDialog(this, currentRoundLog);
+        currentRoundLog = "";
     }
 }
 
@@ -1673,11 +1774,14 @@ private int chooseAISmartSlot(Card playerCard) {
     
 
     private void replaceUsedAICard(int aiSlot) {
-    if (aiDeckCount <= 0) {
+    if (sharedDeckCount <= 0) {
         return;
-    }
+}
 
-    Card newCard = createRandomCard();
+    Card newCard = drawSharedDeckCard();
+    if (newCard == null) {
+        return;
+}
 
     if (aiSlot == 1) {
         aiCard1 = newCard;
@@ -1691,8 +1795,9 @@ private int chooseAISmartSlot(Card playerCard) {
 
     updateAIButtonBack(aiSlot);
 
-    aiDeckCount--;
-    jButton10.setText("" + aiDeckCount);
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 }
 
 
@@ -1777,11 +1882,14 @@ private int chooseAISmartSlot(Card playerCard) {
     if (selectedCardButton == 13) {
     return;
 }
-    if (playerDeckCount <= 0) {
-        return;
-    }
+    if (sharedDeckCount <= 0) {
+    return;
+}
 
-    Card newCard = createRandomCard();
+    Card newCard = drawSharedDeckCard();
+    if (newCard == null) {
+        return;
+}
 
     if (selectedCardButton == 1) {
         playerCard1 = newCard;
@@ -1808,8 +1916,9 @@ private int chooseAISmartSlot(Card playerCard) {
         jButton4.setEnabled(true);
     }
 
-    playerDeckCount--;
-    jButton9.setText("" + playerDeckCount);
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 }
     
     private void showSelectedCardInMiddle() {
@@ -1861,7 +1970,7 @@ private void setAICardBySlot(int slot, Card card) {
 }
     
     
-    private void stealRandomAICardToPlayer() {
+private void stealRandomAICardToPlayer() {
     int aiSlot = getRandomAISlot();
     Card stolenCard = getAICardBySlot(aiSlot);
 
@@ -1873,8 +1982,17 @@ private void setAICardBySlot(int slot, Card card) {
     setPlayerCardBySlot(playerSlot, stolenCard);
     updatePlayerButtonIcon(playerSlot);
 
-    setAICardBySlot(aiSlot, createRandomCard());
-    updateAIButtonBack(aiSlot);
+    Card replacementCard = drawSharedDeckCard();
+    if (replacementCard == null) {
+        setAICardBySlot(aiSlot, null);
+    } else {
+        setAICardBySlot(aiSlot, replacementCard);
+        updateAIButtonBack(aiSlot);
+    }
+
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 }
 
 private void stealRandomPlayerCardToAI() {
@@ -1889,8 +2007,17 @@ private void stealRandomPlayerCardToAI() {
     setAICardBySlot(aiSlot, stolenCard);
     updateAIButtonBack(aiSlot);
 
-    setPlayerCardBySlot(playerSlot, createRandomCard());
-    updatePlayerButtonIcon(playerSlot);
+    Card replacementCard = drawSharedDeckCard();
+    if (replacementCard == null) {
+        setPlayerCardBySlot(playerSlot, null);
+    } else {
+        setPlayerCardBySlot(playerSlot, replacementCard);
+        updatePlayerButtonIcon(playerSlot);
+    }
+
+    sharedDeckCount = sharedDeck.size();
+    jButton9.setText("" + sharedDeckCount);
+    jButton10.setText("" + sharedDeckCount);
 }
     
     
